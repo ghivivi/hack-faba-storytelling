@@ -43,7 +43,7 @@ A collection of tools and scripts for customizing and enhancing your MyFaba and 
 - Original: 150 MB → Backup: 45-50 MB (max compression)
 - Backup time: 2-5 minutes for 150 MB
 
-See **[BACKUP.md](BACKUP.md)** for detailed instructions and restore procedures.
+See **[BACKUP.md](BACKUP.md)** (IT) / **[BACKUP_EN.md](BACKUP_EN.md)** (EN) for detailed instructions and restore procedures.
 
 ## Sync from Google Drive
 
@@ -74,7 +74,7 @@ The `sync_from_drive.py` script allows you to easily receive MP3 files from othe
 3. Run the sync script - it downloads, encrypts, and adds files automatically
 4. Processed files are archived on Drive
 
-See **[SYNC_FROM_DRIVE.md](SYNC_FROM_DRIVE.md)** for setup instructions and detailed usage.
+See **[SYNC_FROM_DRIVE.md](SYNC_FROM_DRIVE.md)** (IT) / **[SYNC_FROM_DRIVE_EN.md](SYNC_FROM_DRIVE_EN.md)** (EN) for setup instructions and detailed usage.
 
 ## Add Tracks to Faba
 
@@ -100,7 +100,7 @@ The `add_tracks.py` script makes it easy to add new MP3 files to your Faba devic
 - 🏷️ **ID3 tag management**: Automatically updates all ID3 tags to match Faba's format (KxxxxCPyy)
 - 🔐 **Automatic encryption**: Converts MP3 files to encrypted .MKI format
 
-See **[ADD_TRACKS.md](ADD_TRACKS.md)** for detailed instructions and examples.
+See **[ADD_TRACKS.md](ADD_TRACKS.md)** (IT) / **[ADD_TRACKS_EN.md](ADD_TRACKS_EN.md)** (EN) for detailed instructions and examples.
 
 ## Remove Advertisements
 
@@ -116,7 +116,7 @@ Many Faba figures include a short advertisement as the first track (CP01.MKI). Y
 ./remove_ads.py /mnt/faba/MKI01 --backup
 ```
 
-The script automatically identifies advertisements by file size (~448KB) and preserves all real content. See **[REMOVE_ADS.md](REMOVE_ADS.md)** for detailed instructions and safety information.
+The script automatically identifies advertisements by file size (~448KB) and preserves all real content. See **[REMOVE_ADS.md](REMOVE_ADS.md)** (IT) / **[REMOVE_ADS_EN.md](REMOVE_ADS_EN.md)** (EN) for detailed instructions and safety information.
 
 ## Create your own figure (Original Faba)
 
@@ -276,6 +276,17 @@ For a list of known figure IDs and their corresponding characters, please check 
 
 For frequently asked questions and troubleshooting tips, please check our [FAQ](FAQ.md).
 This addition provides a link to a separate FAQ.md file where you can include frequently asked questions and their answers. Make sure to create the FAQ.md file in the same directory as the README.md file.
+
+## 📚 Documentation Languages
+
+All major tools have documentation available in both Italian and English:
+
+| Tool | Italian 🇮🇹 | English 🇬🇧 |
+|------|-----------|------------|
+| **Backup** | [BACKUP.md](BACKUP.md) | [BACKUP_EN.md](BACKUP_EN.md) |
+| **Add Tracks** | [ADD_TRACKS.md](ADD_TRACKS.md) | [ADD_TRACKS_EN.md](ADD_TRACKS_EN.md) |
+| **Remove Ads** | [REMOVE_ADS.md](REMOVE_ADS.md) | [REMOVE_ADS_EN.md](REMOVE_ADS_EN.md) |
+| **Sync from Drive** | [SYNC_FROM_DRIVE.md](SYNC_FROM_DRIVE.md) | [SYNC_FROM_DRIVE_EN.md](SYNC_FROM_DRIVE_EN.md) |
 
 ## Learn More
 
