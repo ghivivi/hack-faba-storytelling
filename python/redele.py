@@ -1,5 +1,14 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
+"""
+Red Ele - MyFaba Box MP3 Encryption/Decryption Tool
+
+This tool can encrypt MP3 files for use with MyFaba storytelling boxes,
+or decrypt MKI files from the box back to MP3 format.
+
+The encryption uses a custom byte transformation algorithm specific to
+the MyFaba/Faba+ device format.
+"""
 
 import codecs
 import mutagen
@@ -14,9 +23,11 @@ from gooey import GooeyParser
 from mutagen.id3 import ID3, TIT2
 from mutagen.mp3 import MP3
 
+# Constants
+FIGURE_ID_PATTERN = r"^\d{4}$"
+FIGURE_DIR_PATTERN = r'[\\/]K(\d{4})$'
 
-
-# Cipher transformation tables
+# Cipher transformation tables - custom MyFaba encryption algorithm
 byte_high_nibble = [
     [0x30, 0x30, 0x20, 0x20, 0x10, 0x10, 0x00, 0x00, 0x70, 0x70, 0x60, 0x60, 0x50, 0x50, 0x40, 0x40,
      0xB0, 0xB0, 0xA0, 0xA0, 0x90, 0x90, 0x80, 0x80, 0xF0, 0xF0, 0xE0, 0xE0, 0xD0, 0xD0, 0xC0, 0xC0],
@@ -40,7 +51,13 @@ byte_low_nibble_odd = [[0x8, 0x9, 0xA, 0xB, 0xC, 0xD, 0xE, 0xF],
 
 
 def clear_and_set_title(mp3_file, new_title):
-    """ Remove all MP3 tags and set a single title tag """
+    """
+    Remove all MP3 ID3 tags and set a single title tag.
+
+    Args:
+        mp3_file: Path to the MP3 file
+        new_title: The title to set in the ID3 tag (format: KxxxxCPyy)
+    """
     try:
         tags = MP3(mp3_file, ID3=ID3)
         tags.delete()
@@ -51,7 +68,18 @@ def clear_and_set_title(mp3_file, new_title):
         sys.exit(1)
 
 def cipher_file(input_filename):
-    """ Apply custom byte transformation to an input file """
+    """
+    Apply custom MyFaba byte transformation to encrypt an MP3 file.
+
+    The encryption uses position-based nibble transformation tables
+    to obfuscate the MP3 data for MyFaba devices.
+
+    Args:
+        input_filename: Path to the input MP3 file
+
+    Returns:
+        Path to the encrypted .MKI output file
+    """
     output_filename = input_filename + ".MKI"
     try:
         with open(input_filename, "rb") as infile, open(output_filename, "wb") as outfile:
@@ -59,13 +87,16 @@ def cipher_file(input_filename):
             while byte_read := infile.read(1):
                 byte_read = byte_read[0]
                 byte_pos = pos % 4
+
+                # Apply high nibble transformation based on position
                 modified_byte = byte_high_nibble[byte_pos][byte_read % 32]
-                
+
+                # Apply low nibble transformation (different for even/odd bytes)
                 if byte_read % 2 == 0:
                     modified_byte += byte_low_nibble_even[byte_pos][byte_read // 32]
                 else:
                     modified_byte += byte_low_nibble_odd[byte_pos][byte_read // 32]
-                
+
                 outfile.write(bytes([modified_byte]))
                 pos += 1
 
@@ -76,7 +107,19 @@ def cipher_file(input_filename):
         sys.exit(1)
 
 def decipher_file(input_filename, output_filename):
-    """ Reverse the cipher transformation to restore the original file """
+    """
+    Reverse the cipher transformation to restore the original MP3 file.
+
+    This decrypts .MKI files from MyFaba devices back to standard MP3 format
+    by reversing the nibble transformation.
+
+    Args:
+        input_filename: Path to the encrypted .MKI file
+        output_filename: Path where the decrypted MP3 will be saved
+
+    Returns:
+        Path to the decrypted output file
+    """
     try:
         with open(input_filename, "rb") as infile, open(output_filename, "wb") as outfile:
             pos = 0
@@ -84,16 +127,19 @@ def decipher_file(input_filename, output_filename):
                 byte_read = byte_read[0]
                 byte_pos = pos % 4
 
+                # Extract high and low nibbles
                 high_byte = byte_read & 0xF0
                 low_byte = byte_read & 0x0F
 
+                # Find indices in transformation tables
                 index_high = byte_high_nibble[byte_pos].index(high_byte)
                 if low_byte in byte_low_nibble_even[byte_pos]:
                     index_low = byte_low_nibble_even[byte_pos].index(low_byte)
                 else:
                     index_low = byte_low_nibble_odd[byte_pos].index(low_byte)
                     index_high += 1
-                
+
+                # Reconstruct original byte
                 original_byte = index_low * 32 + index_high
                 outfile.write(bytes([original_byte]))
 
@@ -192,14 +238,14 @@ def main():
             for root, _, filenames in os.walk(args.source_folder):
                 for filename in filenames:
                     full_path = Path(root) / filename
-                    match = re.search(r'[\\/]K(\d{4})$', root)
+                    match = re.search(FIGURE_DIR_PATTERN, root)
                     if filename.lower().endswith(".mp3") and match:
                         mp3_files.setdefault(match.group(1), []).append(full_path)
                         count += 1
             
         else:
-            if not re.match(r"^\d{4}$", args.figure_id):
-                print("Error: Figure ID must be exactly 4 digits.")
+            if not re.match(FIGURE_ID_PATTERN, args.figure_id):
+                print("Error: Figure ID must be exactly 4 digits (0001-9999).")
                 sys.exit(1)
 
             for root, _, filenames in os.walk(args.source_folder):
