@@ -8,9 +8,24 @@ A collection of tools and scripts for customizing and enhancing your MyFaba and 
 - 🔐 Encrypt/decrypt MyFaba audio files
 - 🐍 Python GUI tool (Red Ele) for easy file management
 - 🐳 Docker support for cross-platform compatibility
+- 🚫 Remove advertisements from your Faba device
 - 📝 Comprehensive documentation and FAQ
 
+## Remove Advertisements
 
+Many Faba figures include a short advertisement as the first track (CP01.MKI). You can safely remove these using the `remove_ads.py` script.
+
+**Quick Start:**
+
+```bash
+# 1. Check what would be removed (safe, no changes)
+./remove_ads.py /mnt/faba/MKI01 --dry-run
+
+# 2. Move advertisements to backup folder (recommended)
+./remove_ads.py /mnt/faba/MKI01 --backup
+```
+
+The script automatically identifies advertisements by file size (~448KB) and preserves all real content. See **[REMOVE_ADS.md](REMOVE_ADS.md)** for detailed instructions and safety information.
 
 ## Create your own figure (Original Faba)
 
