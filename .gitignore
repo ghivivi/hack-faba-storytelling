@@ -12,3 +12,8 @@ faba_ads_backup_*/
 # Temporary download folders
 temp_downloads/
 .rclone_cache/
+
+# Backup files
+backups/
+faba_backup_*.zip
+*_metadata.json

@@ -12,7 +12,38 @@ A collection of tools and scripts for customizing and enhancing your MyFaba and 
 - ➕ Add tracks to new or existing figures with automatic ID management
 - 🔄 Automatic track renumbering and ID3 tag updates
 - ☁️ Sync MP3 files from Google Drive (or other cloud storage)
+- 💾 Complete backup system with maximum compression
 - 📝 Comprehensive documentation and FAQ
+
+## ⚠️ Backup Your Faba
+
+**Before any modification, always create a backup!** The `backup_faba.py` script creates a compressed backup of your entire Faba disk.
+
+**Quick Start:**
+
+```bash
+# Create backup with maximum compression
+./backup_faba.py /mnt/faba/MKI01
+
+# Fast backup (lower compression, faster)
+./backup_faba.py /mnt/faba/MKI01 --fast
+
+# Backup + upload to Google Drive
+./backup_faba.py /mnt/faba/MKI01 --upload-to-drive
+```
+
+**Features:**
+- 💾 **Maximum compression**: Reduces size by 60-70%
+- 🔐 **SHA256 checksum**: Verify backup integrity
+- ☁️ **Cloud upload**: Automatic upload to Google Drive
+- 📊 **Detailed statistics**: File count, size, compression ratio
+- ✅ **Auto-verification**: Ensures backup is valid
+
+**Typical results:**
+- Original: 150 MB → Backup: 45-50 MB (max compression)
+- Backup time: 2-5 minutes for 150 MB
+
+See **[BACKUP.md](BACKUP.md)** for detailed instructions and restore procedures.
 
 ## Sync from Google Drive
 
