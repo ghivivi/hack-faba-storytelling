@@ -9,8 +9,9 @@ import java.util.Arrays;
 import java.util.List;
 
 /**
- * Decipher Myfaba sound tracks<br>
- * Grabs each byte and it transforms it following the custom mapping defined.
+ * Decipher (decrypt) MyFaba sound tracks<br>
+ * Grabs each byte and transforms it following the custom mapping defined.
+ * Reverses the encryption applied by MKICipher to restore the original MP3.
  */
 public class MKIDecipher {
 
@@ -38,11 +39,25 @@ public class MKIDecipher {
     public static void main(String[] args) {
         if (args.length < 1) {
             System.out.println("Usage: java MKIDecipher <input-file>");
+            System.out.println("  <input-file>: Path to the .MKI file to decipher");
+            System.out.println("  Output: Creates <input-file>.mp3");
             return;
         }
 
         String inputFileName = args[0];
         File inputFile = new File(inputFileName);
+
+        // Check if input file exists
+        if (!inputFile.exists()) {
+            System.out.println("Error: Input file '" + inputFileName + "' does not exist.");
+            System.exit(1);
+        }
+
+        if (!inputFile.canRead()) {
+            System.out.println("Error: Cannot read input file '" + inputFileName + "'.");
+            System.exit(1);
+        }
+
         String outputFileName = inputFileName + ".mp3";
         File outputFile = new File(outputFileName);
 
@@ -52,10 +67,10 @@ public class MKIDecipher {
             int byteRead;
             int pos = 0;
             while ((byteRead = bis.read()) != -1) {
+                // Decipher the byte using reverse transformation
                 int modifiedByte = findDecipheredData(pos, byteRead);
 
-                // Write the modified byte to the output file.
-                // System.out.println("pos: "+pos+"\tcipher: "+Integer.toHexString(byteRead)+"\torig: "+Integer.toHexString(modifiedByte));
+                // Write the deciphered byte to the output file
                 bos.write(modifiedByte);
                 pos++;
             }
@@ -69,24 +84,34 @@ public class MKIDecipher {
     }
 
     /**
-     * Based on the byte position and the value, it obtains the real byte
-     * @param pos position in the file
-     * @param value hex value
-     * @return
+     * Reverses the cipher transformation to obtain the original byte value.
+     * Based on the byte position and the ciphered value, it finds the original byte.
+     *
+     * @param pos position in the file (used to determine transformation table)
+     * @param value the ciphered byte value
+     * @return the original (deciphered) byte value
      */
     private static int findDecipheredData(int pos, int value) {
+        // Extract high and low nibbles from the ciphered byte
         Integer highByte = (value & 0xF0);
         Integer lowByte = (value & 0x0F);
         int indexHigh = -1;
         int indexLow = -1;
+
+        // Calculate position-based transformation table index
         var posByte = pos % 4;
+
+        // Find indices in transformation tables
         indexHigh = byteHighNibble.get(posByte).indexOf(highByte);
         indexLow = byteLowNibbleEven.get(posByte).indexOf(lowByte);
+
+        // Check if low nibble is in odd table instead
         if (indexLow < 0) {
             indexLow = byteLowNibbleOdd.get(posByte).indexOf(lowByte);
             indexHigh++;
         }
 
+        // Reconstruct the original byte value
         return indexLow * 32 + indexHigh;
     }
 }

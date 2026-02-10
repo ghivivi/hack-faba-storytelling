@@ -6,8 +6,9 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 
 /**
- * Decipher Myfaba sound tracks<br>
- * Grabs each byte and it transforms it following the custom mapping defined.
+ * Cipher (encrypt) MyFaba sound tracks<br>
+ * Grabs each byte and transforms it following the custom mapping defined.
+ * The output file will have a .MKI extension appended.
  */
 public class MKICipher {
 
@@ -34,12 +35,26 @@ public class MKICipher {
 
     public static void main(String[] args) {
         if (args.length < 1) {
-            System.out.println("Usage: java MKIDecipher <input-file>");
+            System.out.println("Usage: java MKICipher <input-file>");
+            System.out.println("  <input-file>: Path to the MP3 file to cipher");
+            System.out.println("  Output: Creates <input-file>.MKI");
             return;
         }
 
         String inputFileName = args[0];
         File inputFile = new File(inputFileName);
+
+        // Check if input file exists
+        if (!inputFile.exists()) {
+            System.out.println("Error: Input file '" + inputFileName + "' does not exist.");
+            System.exit(1);
+        }
+
+        if (!inputFile.canRead()) {
+            System.out.println("Error: Cannot read input file '" + inputFileName + "'.");
+            System.exit(1);
+        }
+
         String outputFileName = inputFileName + ".MKI";
         File outputFile = new File(outputFileName);
 
@@ -51,14 +66,18 @@ public class MKICipher {
             while ((byteRead = bis.read()) != -1) {
                 int modifiedByte = 0;
                 var bytePos = pos % 4;
+
+                // Apply high nibble transformation based on position
                 modifiedByte += byteHighNibble[bytePos][byteRead % 32];
+
+                // Apply low nibble transformation (different for even/odd bytes)
                 if (byteRead % 2 == 0) {
                     modifiedByte += byteLowNibbleEven[bytePos][byteRead / 32];
                 } else {
                     modifiedByte += byteLowNibbleOdd[bytePos][byteRead / 32];
                 }
 
-                // Write the modified byte to the output file.
+                // Write the ciphered byte to the output file
                 bos.write(modifiedByte);
                 pos++;
             }

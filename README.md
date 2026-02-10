@@ -1,47 +1,93 @@
-# myfaba-hacks
+# MyFaba Hacks
+
 A collection of tools and scripts for customizing and enhancing your MyFaba and Faba+ storytelling box. Unlock new features, personalize your experience, and dive deeper into the world of interactive storytelling with this set of user-friendly hacks and mods.
+
+## Features
+
+- 🎵 Create custom audio figures for MyFaba and Faba+ devices
+- 🔐 Encrypt/decrypt MyFaba audio files
+- 🐍 Python GUI tool (Red Ele) for easy file management
+- 🐳 Docker support for cross-platform compatibility
+- 📝 Comprehensive documentation and FAQ
 
 
 
 ## Create your own figure (Original Faba)
-For original FABA, you can also use [alternative implementation in python](python/README.md).
 
-Create a folder with your own songs in faba format
-```
-./createFigure.sh <figure_ID (4 digits)> <source_folder>
-```
-For example for figure with ID 0742
-```
-./createFigure.sh 0742 /home/user/mysongs
-```
+For the original FABA (red cube), you can create custom figures with your own audio files.
 
-Then copy it to your faba box.
+**Method 1: Shell Script (Linux/macOS)**
 
-Write an NFC TAG with the figure ID and enjoy it!
+1. Create a folder with your MP3 files
+2. Run the creation script:
+   ```bash
+   ./createFigure.sh <figure_ID (4 digits)> <source_folder>
+   ```
+
+   Example for figure with ID 0742:
+   ```bash
+   ./createFigure.sh 0742 /home/user/mysongs
+   ```
+
+3. Copy the generated `K0742` folder to your Faba box
+4. Write an NFC tag with the figure ID (see [FAQ](FAQ.md))
+5. Enjoy your custom audio!
+
+**Method 2: Python Tool (All platforms)**
+
+For an alternative implementation with GUI, see the [Python Red Ele tool](python/README.md).
 
 ## Create your own figure (Faba+)
-Create a folder with your own songs in faba format
-```
-./createFigureFabaPlus.sh <figure_ID (4 digits)> <source_folder>
-```
-For example for figure with ID 0742
-```
-./createFigureFabaPlus.sh 0742 /home/user/mysongs
+
+For Faba+ devices, the process is similar but uses a different file format (no encryption, just renamed MP3s with an info file).
+
+1. Create a folder with your MP3 files
+2. Run the Faba+ creation script:
+   ```bash
+   ./createFigureFabaPlus.sh <figure_ID (4 digits)> <source_folder>
+   ```
+
+   Example for figure with ID 0742:
+   ```bash
+   ./createFigureFabaPlus.sh 0742 /home/user/mysongs
+   ```
+
+3. Copy the generated files to your Faba+ box (requires opening the device, see [FAQ](FAQ.md))
+4. Write an NFC tag with the figure ID
+5. Enjoy your custom audio!
+
+**Note:** Faba+ uses a MicroSD card inside the device. You'll need to open the device to access it (screws are under the red bottom pins).
+
+## Cipher and Decipher Files
+
+### Prerequisites
+First, compile the Java files:
+```bash
+javac MKICipher.java MKIDecipher.java
 ```
 
-Then copy it to your faba box (See FAQ).
-
-## Cipher and decipher files
-### Decipher file
-```
-javac MKIDecipher.java
-java MKIDecipher ../../K0403_CP01
+### Decipher (Decrypt) File
+To decrypt a .MKI file from the Faba box back to MP3:
+```bash
+java MKIDecipher /path/to/encrypted/file
 ```
 
-### Cipher file
+Example:
+```bash
+java MKIDecipher /mnt/faba/MKI01/K0403/CP01
+# Output: CP01.mp3
 ```
-javac MKICipher.java
-java MKICipher ../../K0403_CP01.decipher
+
+### Cipher (Encrypt) File
+To encrypt an MP3 file for use with Faba box:
+```bash
+java MKICipher /path/to/mp3/file
+```
+
+Example:
+```bash
+java MKICipher /home/user/mysong.mp3
+# Output: mysong.mp3.MKI
 ```
 
 ---
