@@ -9,7 +9,35 @@ A collection of tools and scripts for customizing and enhancing your MyFaba and 
 - 🐍 Python GUI tool (Red Ele) for easy file management
 - 🐳 Docker support for cross-platform compatibility
 - 🚫 Remove advertisements from your Faba device
+- ➕ Add tracks to new or existing figures with automatic ID management
+- 🔄 Automatic track renumbering and ID3 tag updates
 - 📝 Comprehensive documentation and FAQ
+
+## Add Tracks to Faba
+
+The `add_tracks.py` script makes it easy to add new MP3 files to your Faba device with automatic encryption, ID3 tag management, and track renumbering.
+
+**Quick Start:**
+
+```bash
+# Create new figure with auto-incremental ID
+./add_tracks.py /mnt/faba/MKI01 --new-figure track1.mp3 track2.mp3 track3.mp3
+
+# Add tracks to existing figure
+./add_tracks.py /mnt/faba/MKI01 --add-to K0015 newtrack.mp3
+
+# Insert track at specific position (renumbers subsequent tracks)
+./add_tracks.py /mnt/faba/MKI01 --add-to K0015 intro.mp3 --position 2
+```
+
+**Features:**
+- 🆔 **Auto-incremental IDs**: Automatically finds the next available ID in your custom range (default: 9000-9999)
+- 🏷️ **Custom ID ranges**: Use `--custom-prefix` to organize your content (e.g., 8xxx for audiobooks, 9xxx for music)
+- 🔢 **Smart renumbering**: Insert tracks anywhere and all subsequent tracks are automatically renumbered
+- 🏷️ **ID3 tag management**: Automatically updates all ID3 tags to match Faba's format (KxxxxCPyy)
+- 🔐 **Automatic encryption**: Converts MP3 files to encrypted .MKI format
+
+See **[ADD_TRACKS.md](ADD_TRACKS.md)** for detailed instructions and examples.
 
 ## Remove Advertisements
 
