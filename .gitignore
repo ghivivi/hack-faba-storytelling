@@ -4,3 +4,7 @@
 *.class
 __pycache__/
 .DS_Store
+
+# Remove ads script output files
+remove_ads_log_*.txt
+faba_ads_backup_*/
