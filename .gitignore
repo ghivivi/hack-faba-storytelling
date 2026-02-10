@@ -8,3 +8,7 @@ __pycache__/
 # Remove ads script output files
 remove_ads_log_*.txt
 faba_ads_backup_*/
+
+# Temporary download folders
+temp_downloads/
+.rclone_cache/
