@@ -11,7 +11,39 @@ A collection of tools and scripts for customizing and enhancing your MyFaba and 
 - 🚫 Remove advertisements from your Faba device
 - ➕ Add tracks to new or existing figures with automatic ID management
 - 🔄 Automatic track renumbering and ID3 tag updates
+- ☁️ Sync MP3 files from Google Drive (or other cloud storage)
 - 📝 Comprehensive documentation and FAQ
+
+## Sync from Google Drive
+
+The `sync_from_drive.py` script allows you to easily receive MP3 files from others via Google Drive and automatically add them to your Faba device.
+
+**Quick Start:**
+
+```bash
+# First-time setup (configure rclone)
+./sync_from_drive.py --setup
+
+# List available files on Google Drive
+./sync_from_drive.py --list
+
+# Download and process all new files
+./sync_from_drive.py --sync-all --faba-dir /mnt/faba/MKI01
+```
+
+**Perfect for:**
+- 👵 Receiving recorded stories from grandparents
+- 🎤 Getting custom recordings from family and friends
+- 📚 Collaborative content creation
+- ☁️ Cloud-based audio library management
+
+**How it works:**
+1. Someone uploads MP3 files to a shared Google Drive folder
+2. Connect your Faba to your PC
+3. Run the sync script - it downloads, encrypts, and adds files automatically
+4. Processed files are archived on Drive
+
+See **[SYNC_FROM_DRIVE.md](SYNC_FROM_DRIVE.md)** for setup instructions and detailed usage.
 
 ## Add Tracks to Faba
 
