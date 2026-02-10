@@ -65,6 +65,48 @@ Cancella **definitivamente** le pubblicità:
 - Ti verrà chiesto di digitare "DELETE" per confermare
 - I file verranno cancellati permanentemente
 
+### 4. Opzione Renumber (Rinumerazione Automatica)
+
+Dopo aver rimosso CP01, puoi rinumerare automaticamente i file rimanenti:
+
+```bash
+./remove_ads.py /mnt/faba/MKI01 --backup --renumber
+```
+
+oppure
+
+```bash
+./remove_ads.py /mnt/faba/MKI01 --delete --renumber
+```
+
+**Cosa fa --renumber:**
+- Rinumera i file rimanenti: CP02→CP01, CP03→CP02, etc.
+- Aggiorna automaticamente i tag ID3 interni (es. "K0015CP02" diventa "K0015CP01")
+- Mantiene la compatibilità con il dispositivo Faba
+- Elimina "buchi" nella numerazione delle tracce
+
+**Esempio pratico:**
+
+Prima della rimozione:
+```
+K0010/
+  ├── CP01.MKI (448KB - pubblicità)
+  ├── CP02.MKI (1.2MB - contenuto)
+  └── CP03.MKI (850KB - contenuto)
+```
+
+Dopo `--backup --renumber`:
+```
+K0010/
+  ├── CP01.MKI (1.2MB - ex CP02, tag aggiornato a "K0010CP01")
+  └── CP02.MKI (850KB - ex CP03, tag aggiornato a "K0010CP02")
+```
+
+**Requisiti per --renumber:**
+```bash
+pip install mutagen
+```
+
 ## 📊 Output e Log
 
 Lo script crea un file di log dettagliato:
@@ -90,18 +132,28 @@ Lo script è progettato per essere **estremamente sicuro**:
 # 1. Analizza cosa c'è (nessuna modifica)
 ./remove_ads.py /mnt/faba/MKI01 --dry-run
 
-# 2. Se sei soddisfatto, fai backup
-./remove_ads.py /mnt/faba/MKI01 --backup
+# 2. Vedi anche cosa succederebbe con la rinumerazione
+./remove_ads.py /mnt/faba/MKI01 --dry-run --renumber
+
+# 3. Se sei soddisfatto, fai backup con rinumerazione
+./remove_ads.py /mnt/faba/MKI01 --backup --renumber
 ```
 
 ### Caso 2: Disco esterno Faba
 
 ```bash
 # Supponendo che il Faba sia montato in /media/usb/FABA
-./remove_ads.py /media/usb/FABA/MKI01 --backup
+./remove_ads.py /media/usb/FABA/MKI01 --backup --renumber
 ```
 
-### Caso 3: Ripristino dal backup
+### Caso 3: Rimozione definitiva con rinumerazione
+
+```bash
+# Solo se sei SICURO e hai fatto un backup completo del disco
+./remove_ads.py /mnt/faba/MKI01 --delete --renumber
+```
+
+### Caso 4: Ripristino dal backup
 
 Se hai fatto --backup e vuoi ripristinare:
 
@@ -123,6 +175,18 @@ cp -r faba_ads_backup_20260210_134215/K0011/CP01.MKI /mnt/faba/MKI01/K0011/
 ### Q: Come faccio a sapere quali sono pubblicità?
 **A:** Lo script identifica automaticamente i file CP01 con dimensione ~448KB (440-470KB). I contenuti veri hanno di solito dimensioni molto diverse.
 
+### Q: Devo usare --renumber?
+**A:** Non è obbligatorio, ma è **consigliato**:
+- **Senza --renumber**: Il Faba inizierà a riprodurre da CP02 (dovrebbe funzionare)
+- **Con --renumber**: Riproduzione pulita da CP01, senza "buchi" nella numerazione
+
+### Q: Come funziona la rinumerazione?
+**A:** Lo script:
+1. Decifra ogni file .MKI in .mp3
+2. Aggiorna il tag ID3 con il nuovo numero (es. "K0015CP02" → "K0015CP01")
+3. Ricifra il file in .MKI
+4. Rinomina il file (es. CP02.MKI → CP01.MKI)
+
 ### Q: Funziona su tutto il disco?
 **A:** Sì! Lo script cerca ricorsivamente in tutte le cartelle K* all'interno della directory che specifichi.
 
@@ -134,8 +198,16 @@ cp -r faba_ads_backup_20260210_134215/K0011/CP01.MKI /mnt/faba/MKI01/K0011/
 
 ## 🔧 Requisiti
 
+**Requisiti base:**
 - Python 3.6 o superiore
 - Accesso in lettura/scrittura alla directory del Faba
+
+**Per usare --renumber (opzionale):**
+- Libreria `mutagen` per la manipolazione dei tag ID3
+
+```bash
+pip install mutagen
+```
 
 ## 📄 Note Tecniche
 
