@@ -4,3 +4,4 @@
 *.class
 __pycache__/
 .DS_Store
+hack-faba-storytelling.code-workspace
