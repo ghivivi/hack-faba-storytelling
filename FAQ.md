@@ -13,10 +13,15 @@ A: Custom disks should be 5cm in diameter to fit with the Faba Box (Mine are mak
 
 ### Q: Is Faba+ supported?
 A: Yes, however Faba+ uses a different method to cipher files.
-Use the following script to convert the files (Basically .mp3 with a different extensions and a control file):
+Use the following script to convert the files (Basically .mp3 with a different extension and a control file):
 
 ```
-./createFigureFabaPlus.sh <figure_ID (3 digits)> <source_folder>
+./createFigureFabaPlus.sh <figure_ID (4 digits)> <source_folder>
+```
+
+Example:
+```
+./createFigureFabaPlus.sh 0742 /home/user/mysongs
 ```
 ### Q: How can I add the files to Faba+?
 A: In order to add your custom mp3 to Faba+, you can not use the USB (The port is for charging only). You have to:
@@ -44,15 +49,30 @@ A: Yes, you can add your own audio files to the Faba Box. However, you'll need t
 ## Hacking and Customization
 
 ### Q: How do I write a custom code to an NFC tag?
-A: You'll need to use an NFC writing tool to copy the code of a character onto a blank NTAG213 tag. Specific instructions may vary depending on the tool you're using - in general, you need to write NDEF text record with value `02190530XXXX00`, where `XXXX` stands for figure ID (0001 to 9999). This text needs to end up between sector 7, byte 3 and sector 10 (0x0A) byte 4 on the tag. For example, app _NFC_Tools_ on both iOS and Android writes the chip correctly by just creating single new "text" field with correct value and writing it.
+A: You'll need to use an NFC writing tool to copy the code of a character onto a blank NTAG213 tag. Specific instructions may vary depending on the tool you're using.
+
+**NFC Tag Format:**
+- Write an NDEF text record with value: `02190530XXXX00`
+- Where `XXXX` is the 4-digit figure ID (0001 to 9999)
+- This text needs to end up between sector 7, byte 3 and sector 10 (0x0A) byte 4 on the tag
+
+**Recommended Tools:**
+- **NFC Tools** app (iOS and Android): Creates a single "text" field with the correct value and writes it properly
+- Works with compatible NTAG21x tags (see [compatible tags](./FAQ_TAGS.md))
 
 ### Q: What should I do if the Faba Box doesn't recognize my custom tag?
 A: If the box's light stays steady and doesn't make any noise when you place your custom tag, double-check that you've written the correct code to the tag and that [you're using a compatible NFC tag type](./FAQ_TAGS.md). If the light flashes rapidly, box has no content for the tag with this figure ID.
 
 ### Q: How can I decrypt the files from the Faba Box?
-A: To decrypt the files:
-1. Compile the Java file: `javac MKICipher.java`
-2. Run the program with the path to the file you want to decrypt: `java MKICipher ../../K0403_CP01`
+A: Use the Python **Red Ele** tool:
+```bash
+cd python && python3 redele.py decrypt --source-folder /mnt/faba/MKI01/K0010 --target-folder /home/user/decrypted
+```
+
+Or for a single file:
+```bash
+python3 python/mki_cipher.py /mnt/faba/MKI01/K0010/CP01
+```
 
 ### Q: Is it possible to create custom characters for the Faba Box?
 A: Yes, it's possible to create custom characters for the Faba Box by programming custom NFC tags. This requires knowledge of the Faba Box's tag recognition system.
@@ -89,5 +109,14 @@ A: The process for resetting a Faba Box to factory settings may vary. Generally,
 ### Q: What software dependencies do I need to install?
 A: To work with the Faba Box and perform various hacking operations, you'll need to install:
 
-1. Java SDK (Software Development Kit): This is required to compile and run the decryption tool.
-2. id3v2: This is a command line ID3v2 tag editor. You can install it on Debian-based systems (like Ubuntu) using: sudo apt-get install id3v2
+**Required:**
+1. **id3v2**: Command-line ID3v2 tag editor for MP3 metadata (for `createFigure.sh`)
+   - Install on Debian/Ubuntu: `sudo apt-get install id3v2`
+   - Install on macOS: `brew install id3v2`
+
+2. **Python 3**: Required for encryption/decryption tools
+   - Install on Debian/Ubuntu: `sudo apt-get install python3`
+   - macOS/Windows: download from [python.org](https://www.python.org/downloads/)
+
+**Optional (for Python GUI tool Red Ele):**
+3. Install Python dependencies: `cd python && pip install -r requirements.txt`

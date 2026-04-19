@@ -1,5 +1,13 @@
-# Support for monkey-patching mutagen's ID3Header constructor below - includes
-# from mutagen/id3/_tags.py copied verbatim - maybe some are not needed...
+"""
+Utility functions for Red Ele - MyFaba Box MP3 Tool
+
+This module provides utility functions including:
+- Monkey-patch for mutagen's ID3Header to handle malformed ID3 tags
+- Unbuffered stream wrapper for proper UTF-8 output handling
+"""
+
+# Support for monkey-patching mutagen's ID3Header constructor below
+# Includes from mutagen/id3/_tags.py copied verbatim
 import struct
 from itertools import zip_longest
 from mutagen._tags import Tags
@@ -9,20 +17,27 @@ from mutagen.id3._util import BitPaddedInt, unsynch, ID3JunkFrameError, \
     ID3NoHeaderError, ID3UnsupportedVersionError, ID3SaveConfig
 from mutagen.id3._frames import TDRC, APIC, TDOR, TIME, TIPL, TORY, TDAT, Frames_2_2, \
     TextFrame, TYER, Frame, IPLS, Frames
-# support for monkeypatching ends
 
 
-
-# Constructor of mutagen's class mutagen.id3._tags.ID3Header needs to be monkeypatched.
-# Out of the box it raises exception when trying to delete ID3 tags where header size
-# is not synchsafe (e.g. indicating that the chunk is playable MP3 stream part).
-# Since we're only trying to get rid of all ID3 tags, we don't worry about their quality...
+# Monkey-patch for mutagen's ID3Header constructor
+# The standard constructor raises an exception when trying to delete ID3 tags
+# where the header size is not synchsafe (common in MP3s from various sources).
+# Since we only need to delete all ID3 tags, we can safely ignore header quality issues.
 @convert_error(IOError, error)
 def id3header_constructor_monkeypatch(self, fileobj=None):
-    """Raises ID3NoHeaderError, ID3UnsupportedVersionError or error"""
+    """
+    Patched constructor for mutagen.id3._tags.ID3Header.
 
+    This version is more permissive with malformed ID3 headers,
+    allowing deletion of tags even when header size is not synchsafe.
+
+    Raises:
+        ID3NoHeaderError: If no ID3 tag is found
+        ID3UnsupportedVersionError: If ID3 version is not supported
+        error: For other ID3-related errors
+    """
     if fileobj is None:
-        # for testing
+        # For testing purposes
         self._flags = 0
         return
 
@@ -92,13 +107,25 @@ def id3header_constructor_monkeypatch(self, fileobj=None):
         self._extdata = read_full(fileobj, extsize)
 
 class Unbuffered(object):
-   def __init__(self, stream):
-       self.stream = stream
-   def write(self, data):
-       self.stream.write(data)
-       self.stream.flush()
-   def writelines(self, datas):
-       self.stream.writelines(datas)
-       self.stream.flush()
-   def __getattr__(self, attr):
-       return getattr(self.stream, attr)
+    """
+    Wrapper for output streams to ensure immediate flushing.
+
+    This is useful for GUI applications (like Gooey) to see output
+    in real-time rather than buffered.
+    """
+    def __init__(self, stream):
+        self.stream = stream
+
+    def write(self, data):
+        """Write data and immediately flush the stream."""
+        self.stream.write(data)
+        self.stream.flush()
+
+    def writelines(self, datas):
+        """Write multiple lines and immediately flush the stream."""
+        self.stream.writelines(datas)
+        self.stream.flush()
+
+    def __getattr__(self, attr):
+        """Delegate all other attributes to the wrapped stream."""
+        return getattr(self.stream, attr)

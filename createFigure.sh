@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # createFigure.sh
-# Usage: ./createFigure.sh <figure_ID (3 digits)> <source_folder>
+# Usage: ./createFigure.sh <figure_ID (4 digits)> <source_folder>
 
 # Exit immediately if a command exits with a non-zero status
 set -e
@@ -21,7 +21,7 @@ fi
 FIGURE_ID="$1"
 SOURCE_FOLDER="$2"
 
-# Validate that FIGURE_ID is exactly 3 digits
+# Validate that FIGURE_ID is exactly 4 digits
 if ! [[ "$FIGURE_ID" =~ ^[0-9]{4}$ ]]; then
     echo "Error: Figure ID must be exactly 4 digits."
     usage
@@ -64,13 +64,24 @@ for file in "$SOURCE_FOLDER"/*.mp3; do
     # Copy the modified mp3 to the output directory
     cp "$file" "$OUTPUT_DIR/CP${ITERATOR}"
 
-    # Clear all tags
-    id3v2 -D "$OUTPUT_DIR/CP${ITERATOR}" >/dev/null 2>&1
-    # Add tags needed for Faba
-    id3v2 -A "Album Album" -a "Artist Artist" -T "1/1" -c "Converted for Faba Box" -t "$NEW_TITLE" "$OUTPUT_DIR/CP${ITERATOR}"
-    # Cipher the file
-    java MKICipher "$OUTPUT_DIR/CP${ITERATOR}"
-    # Remove source file
+    # Clear all ID3 tags
+    if ! id3v2 -D "$OUTPUT_DIR/CP${ITERATOR}" >/dev/null 2>&1; then
+        echo "Warning: Failed to clear ID3 tags for $file"
+    fi
+
+    # Add tags needed for Faba Box
+    if ! id3v2 -A "Album Album" -a "Artist Artist" -T "1/1" -c "Converted for Faba Box" -t "$NEW_TITLE" "$OUTPUT_DIR/CP${ITERATOR}" >/dev/null 2>&1; then
+        echo "Error: Failed to set ID3 tags for $file"
+        exit 1
+    fi
+
+    # Cipher the file using Python MKI cipher
+    if ! python3 "$(dirname "$0")/python/mki_cipher.py" "$OUTPUT_DIR/CP${ITERATOR}" >/dev/null 2>&1; then
+        echo "Error: Failed to cipher file $OUTPUT_DIR/CP${ITERATOR}"
+        exit 1
+    fi
+
+    # Remove unencrypted source file
     rm "$OUTPUT_DIR/CP${ITERATOR}"
 
     # Increment the iterator

@@ -5,3 +5,16 @@
 __pycache__/
 .DS_Store
 hack-faba-storytelling.code-workspace
+
+# Remove ads script output files
+remove_ads_log_*.txt
+faba_ads_backup_*/
+
+# Temporary download folders
+temp_downloads/
+.rclone_cache/
+
+# Backup files
+backups/
+faba_backup_*.zip
+*_metadata.json

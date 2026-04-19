@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(python3 -c ' *)",
+      "Bash(python3 -)",
+      "Bash(python3 -c \"import ast; [ast.parse\\(open\\(f\\).read\\(\\)\\) and print\\(f'OK: {f}'\\) for f in ['python/cipher.py','python/mki_cipher.py','python/redele.py']]\")"
+    ]
+  }
+}
