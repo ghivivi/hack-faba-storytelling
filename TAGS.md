@@ -104,7 +104,7 @@
 | 0124 | Italian         | PAW Patrol - Tracker si unisce alla PAW Patrol                       |          |
 | 0125 | Italian         | Tutti a nanna con Oscar!                                             |          |
 | 0126 | Italian         | Piccole storie di Pimpa                                              |          |
-| 0127 | Italian         | Arriva Lucilla!                                                      |          |
+| 0127 | Italian         | Arriva Lucilla!                                                      | FFR30016 |
 | 0128 | Italian         | Buonanotte Bing                                                      | FFR15702 |
 | 0129 | Italian         | Facciamo il bagnetto                                                 |          |
 | 0130 | Italian         | Laviamo i dentini                                                    |          |
@@ -144,6 +144,7 @@
 | 0207 | French          | Le Gruffalo                                                          |          |
 | 0208 | French          | Petit Gruffalo                                                       |          |
 | 0209 | French          | La sorcière dans les airs                                            |          |
+| 0210 | Italian         | Il Piccolo Principe                                                  | FFR10001 |
 | 0211 | French          | Les Chansons des Animaux                                             |          |
 | 0212 | French          | Les câlins avant de dormir                                           |          |
 | 0213 | French          | La petite Sirène                                                     |          |
