@@ -1,3 +1,5 @@
-Gooey
 mutagen
+colorama
+Gooey
 six
+pytest

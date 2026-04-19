@@ -12,17 +12,20 @@ Features:
 - Opzionale upload su Google Drive
 
 Usage:
-  # Backup completo con compressione massima
-  ./backup_faba.py /mnt/faba/MKI01
+  # Linux/macOS - Faba montato su /mnt/faba
+  python3 backup_faba.py /mnt/faba/MKI01
+
+  # Windows - Faba montato come drive E:
+  python backup_faba.py E:/MKI01
 
   # Specifica cartella di destinazione
-  ./backup_faba.py /mnt/faba/MKI01 --output ~/backups
+  python3 backup_faba.py /mnt/faba/MKI01 --output ~/backups
 
   # Backup + upload su Google Drive
-  ./backup_faba.py /mnt/faba/MKI01 --upload-to-drive
+  python3 backup_faba.py /mnt/faba/MKI01 --upload-to-drive
 
   # Backup veloce (compressione normale)
-  ./backup_faba.py /mnt/faba/MKI01 --fast
+  python3 backup_faba.py /mnt/faba/MKI01 --fast
 """
 
 import os
@@ -35,43 +38,26 @@ from pathlib import Path
 from datetime import datetime
 from typing import Dict, List, Tuple
 
-# Colors
-class Colors:
-    RED = '\033[0;31m'
-    GREEN = '\033[0;32m'
-    YELLOW = '\033[1;33m'
-    BLUE = '\033[0;34m'
-    CYAN = '\033[0;36m'
-    BOLD = '\033[1m'
-    NC = '\033[0m'
+from faba_utils import Colors, print_colored
 
-def print_colored(text, color):
-    """Print colored text"""
-    print(f"{color}{text}{Colors.NC}")
 
 def format_size(size_bytes):
-    """Format size in human-readable format"""
     for unit in ['B', 'KB', 'MB', 'GB']:
         if size_bytes < 1024.0:
             return f"{size_bytes:.2f} {unit}"
         size_bytes /= 1024.0
     return f"{size_bytes:.2f} TB"
 
+
 def calculate_checksum(file_path: Path, algorithm='sha256'):
-    """Calculate file checksum"""
     hasher = hashlib.new(algorithm)
     with open(file_path, 'rb') as f:
         for chunk in iter(lambda: f.read(65536), b''):
             hasher.update(chunk)
     return hasher.hexdigest()
 
-def scan_faba_directory(faba_dir: Path) -> Dict:
-    """
-    Scan Faba directory and collect statistics.
 
-    Returns:
-        Dictionary with statistics
-    """
+def scan_faba_directory(faba_dir: Path) -> Dict:
     stats = {
         'total_files': 0,
         'total_size': 0,
@@ -79,53 +65,34 @@ def scan_faba_directory(faba_dir: Path) -> Dict:
         'file_types': {}
     }
 
-    # Scan all K* folders
     for figure_dir in sorted(faba_dir.glob('K*')):
         if not figure_dir.is_dir():
             continue
 
-        figure_id = figure_dir.name
         tracks = list(figure_dir.glob('CP*.MKI'))
-
         figure_size = sum(f.stat().st_size for f in tracks)
 
         stats['figures'].append({
-            'id': figure_id,
+            'id': figure_dir.name,
             'tracks': len(tracks),
             'size': figure_size
         })
-
         stats['total_files'] += len(tracks)
         stats['total_size'] += figure_size
 
-        # Count file types
         for track in tracks:
             ext = track.suffix
             stats['file_types'][ext] = stats['file_types'].get(ext, 0) + 1
 
     return stats
 
+
 def create_backup(faba_dir: Path, output_dir: Path, compression_level=9,
-                 show_progress=True) -> Tuple[Path, Dict]:
-    """
-    Create compressed backup of Faba directory.
-
-    Args:
-        faba_dir: Source Faba directory
-        output_dir: Destination directory for backup
-        compression_level: ZIP compression level (0-9, 9 = maximum)
-        show_progress: Show progress during compression
-
-    Returns:
-        Tuple of (backup_path, metadata)
-    """
-    print_colored("╔════════════════════════════════════════════════════════╗", Colors.BLUE)
-    print_colored("║  Faba Backup Tool - Creazione backup...                ║", Colors.BLUE)
-    print_colored("╚════════════════════════════════════════════════════════╝", Colors.BLUE)
+                  show_progress=True) -> Tuple[Path, Dict]:
+    print_colored("Faba Backup Tool - Creazione backup...", Colors.BLUE)
     print()
 
-    # Scan directory
-    print_colored("📂 Scansione directory Faba...", Colors.BLUE)
+    print_colored("Scansione directory Faba...", Colors.BLUE)
     stats = scan_faba_directory(faba_dir)
 
     print()
@@ -135,12 +102,10 @@ def create_backup(faba_dir: Path, output_dir: Path, compression_level=9,
     print(f"  Dimensione totale: {format_size(stats['total_size'])}")
     print()
 
-    # Create backup filename
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
     backup_name = f"faba_backup_{timestamp}.zip"
     backup_path = output_dir / backup_name
 
-    # Create metadata
     metadata = {
         'backup_date': datetime.now().isoformat(),
         'source_path': str(faba_dir),
@@ -148,49 +113,41 @@ def create_backup(faba_dir: Path, output_dir: Path, compression_level=9,
         'statistics': stats
     }
 
-    # Create ZIP with maximum compression
-    print_colored(f"📦 Creazione backup: {backup_name}", Colors.CYAN)
+    print_colored(f"Creazione backup: {backup_name}", Colors.CYAN)
     if compression_level == 9:
-        print_colored("   Compressione: Massima (può richiedere tempo)", Colors.CYAN)
+        print_colored("   Compressione: Massima (puo richiedere tempo)", Colors.CYAN)
     elif compression_level >= 6:
         print_colored("   Compressione: Alta", Colors.CYAN)
     else:
         print_colored("   Compressione: Standard", Colors.CYAN)
     print()
 
-    total_files = stats['total_files']
     processed_files = 0
 
     with zipfile.ZipFile(backup_path, 'w', zipfile.ZIP_DEFLATED,
-                        compresslevel=compression_level) as zipf:
-
-        # Add all figure folders
+                         compresslevel=compression_level) as zipf:
         for figure in stats['figures']:
             figure_id = figure['id']
             figure_dir = faba_dir / figure_id
 
             if show_progress:
-                print(f"  📁 {figure_id} ({figure['tracks']} tracce)...", end=' ', flush=True)
+                print(f"  {figure_id} ({figure['tracks']} tracce)...", end=' ', flush=True)
 
             for track_file in sorted(figure_dir.glob('CP*.MKI')):
-                arcname = f"{figure_id}/{track_file.name}"
-                zipf.write(track_file, arcname)
+                zipf.write(track_file, f"{figure_id}/{track_file.name}")
                 processed_files += 1
 
             if show_progress:
-                print_colored("✓", Colors.GREEN)
+                print_colored("OK", Colors.GREEN)
 
-        # Add metadata file
-        metadata_str = json.dumps(metadata, indent=2)
-        zipf.writestr('backup_metadata.json', metadata_str)
+        zipf.writestr('backup_metadata.json', json.dumps(metadata, indent=2))
 
     print()
 
-    # Calculate backup stats
     backup_size = backup_path.stat().st_size
     compression_ratio = (1 - backup_size / stats['total_size']) * 100 if stats['total_size'] > 0 else 0
 
-    print_colored("✓ Backup creato con successo!", Colors.GREEN)
+    print_colored("Backup creato con successo!", Colors.GREEN)
     print()
     print_colored("Dettagli backup:", Colors.BOLD)
     print(f"  File: {backup_path}")
@@ -199,120 +156,90 @@ def create_backup(faba_dir: Path, output_dir: Path, compression_level=9,
     print(f"  Compressione: {compression_ratio:.1f}%")
     print()
 
-    # Calculate checksum
-    print_colored("🔐 Calcolo checksum...", Colors.BLUE)
+    print_colored("Calcolo checksum...", Colors.BLUE)
     checksum = calculate_checksum(backup_path)
     print(f"  SHA256: {checksum}")
     print()
 
-    # Add checksum to metadata
     metadata['backup_size'] = backup_size
     metadata['compression_ratio'] = compression_ratio
     metadata['checksum_sha256'] = checksum
 
-    # Save metadata to separate file
     metadata_path = output_dir / f"faba_backup_{timestamp}_metadata.json"
     with open(metadata_path, 'w') as f:
         json.dump(metadata, f, indent=2)
 
-    print_colored("📝 Metadata salvato in:", Colors.BLUE)
-    print(f"  {metadata_path}")
+    print_colored(f"Metadata salvato in: {metadata_path}", Colors.BLUE)
     print()
 
     return backup_path, metadata
 
+
 def verify_backup(backup_path: Path) -> bool:
-    """
-    Verify backup integrity.
-
-    Args:
-        backup_path: Path to backup ZIP file
-
-    Returns:
-        True if backup is valid
-    """
-    print_colored("🔍 Verifica integrità backup...", Colors.BLUE)
+    print_colored("Verifica integrita backup...", Colors.BLUE)
 
     try:
         with zipfile.ZipFile(backup_path, 'r') as zipf:
-            # Test ZIP integrity
             corrupt_files = zipf.testzip()
-
             if corrupt_files:
-                print_colored(f"✗ File corrotto nel backup: {corrupt_files}", Colors.RED)
+                print_colored(f"File corrotto nel backup: {corrupt_files}", Colors.RED)
                 return False
 
-            # Check metadata
             try:
-                metadata_content = zipf.read('backup_metadata.json')
-                metadata = json.loads(metadata_content)
-
-                print_colored("✓ Backup verificato correttamente", Colors.GREEN)
+                metadata = json.loads(zipf.read('backup_metadata.json'))
+                print_colored("Backup verificato correttamente", Colors.GREEN)
                 print(f"  Figure nel backup: {len(metadata['statistics']['figures'])}")
                 print(f"  Data backup: {metadata['backup_date']}")
                 return True
-
             except KeyError:
-                print_colored("⚠️  Metadata mancante nel backup", Colors.YELLOW)
-                return True  # Backup is valid, just missing metadata
+                print_colored("Attenzione: Metadata mancante nel backup", Colors.YELLOW)
+                return True
 
     except zipfile.BadZipFile:
-        print_colored("✗ File ZIP corrotto o non valido", Colors.RED)
+        print_colored("File ZIP corrotto o non valido", Colors.RED)
         return False
     except Exception as e:
-        print_colored(f"✗ Errore durante verifica: {e}", Colors.RED)
+        print_colored(f"Errore durante verifica: {e}", Colors.RED)
         return False
+
 
 def upload_to_drive(backup_path: Path, remote_path='gdrive:Faba/backups'):
-    """
-    Upload backup to Google Drive using rclone.
-
-    Args:
-        backup_path: Path to backup file
-        remote_path: Remote path on Google Drive
-    """
     print()
-    print_colored("☁️  Upload su Google Drive...", Colors.CYAN)
+    print_colored("Upload su Google Drive...", Colors.CYAN)
 
-    # Check if rclone is configured
     try:
         result = subprocess.run(['rclone', 'listremotes'],
-                              capture_output=True, text=True, timeout=5)
+                                capture_output=True, text=True, timeout=5)
         if result.returncode != 0 or 'gdrive:' not in result.stdout:
-            print_colored("✗ rclone non configurato per Google Drive", Colors.RED)
-            print("Esegui: ./sync_from_drive.py --setup")
+            print_colored("rclone non configurato per Google Drive", Colors.RED)
+            print("Esegui: python3 sync_from_drive.py --setup")
             return False
     except (FileNotFoundError, subprocess.TimeoutExpired):
-        print_colored("✗ rclone non installato", Colors.RED)
+        print_colored("rclone non installato", Colors.RED)
         return False
 
     try:
-        # Upload file
         print(f"  Upload {backup_path.name}...")
         result = subprocess.run(
             ['rclone', 'copy', str(backup_path), remote_path, '-P'],
-            timeout=3600  # 1 hour timeout
+            timeout=3600
         )
-
         if result.returncode == 0:
-            print_colored(f"✓ Backup caricato su {remote_path}", Colors.GREEN)
+            print_colored(f"Backup caricato su {remote_path}", Colors.GREEN)
             return True
         else:
-            print_colored("✗ Errore durante upload", Colors.RED)
+            print_colored("Errore durante upload", Colors.RED)
             return False
-
     except subprocess.TimeoutExpired:
-        print_colored("✗ Timeout durante upload", Colors.RED)
+        print_colored("Timeout durante upload", Colors.RED)
         return False
     except Exception as e:
-        print_colored(f"✗ Errore: {e}", Colors.RED)
+        print_colored(f"Errore: {e}", Colors.RED)
         return False
 
+
 def list_backups(backup_dir: Path):
-    """List all available backups"""
-    print_colored("╔════════════════════════════════════════════════════════╗", Colors.BLUE)
-    print_colored("║  Backup Disponibili                                    ║", Colors.BLUE)
-    print_colored("╚════════════════════════════════════════════════════════╝", Colors.BLUE)
+    print_colored("Backup Disponibili", Colors.BLUE)
     print()
 
     backups = sorted(backup_dir.glob('faba_backup_*.zip'), reverse=True)
@@ -324,13 +251,9 @@ def list_backups(backup_dir: Path):
     for backup_path in backups:
         backup_size = backup_path.stat().st_size
         backup_time = datetime.fromtimestamp(backup_path.stat().st_mtime)
+        metadata_path = backup_path.with_name(backup_path.stem + '_metadata.json')
 
-        # Try to read metadata
-        metadata_path = backup_path.with_name(
-            backup_path.stem + '_metadata.json'
-        )
-
-        print_colored(f"📦 {backup_path.name}", Colors.BOLD)
+        print_colored(f"{backup_path.name}", Colors.BOLD)
         print(f"   Data: {backup_time.strftime('%Y-%m-%d %H:%M:%S')}")
         print(f"   Dimensione: {format_size(backup_size)}")
 
@@ -344,48 +267,47 @@ def list_backups(backup_dir: Path):
                     print(f"   Compressione: {metadata.get('compression_ratio', 0):.1f}%")
                     if 'checksum_sha256' in metadata:
                         print(f"   SHA256: {metadata['checksum_sha256'][:16]}...")
-            except:
+            except Exception:
                 pass
 
         print()
 
+
 def show_usage():
-    """Display usage information"""
-    print("Usage: backup_faba.py <faba_directory> [options]")
+    print("Usage: python3 backup_faba.py <faba_directory> [options]")
     print()
     print("Options:")
     print("  --output DIR          Directory destinazione backup (default: ./backups)")
     print("  --fast                Usa compressione veloce invece di massima")
     print("  --upload-to-drive     Carica backup su Google Drive dopo creazione")
     print("  --list                Lista backup esistenti")
-    print("  --verify FILE         Verifica integrità di un backup")
+    print("  --verify FILE         Verifica integrita di un backup")
     print()
     print("Esempi:")
-    print("  # Backup con compressione massima")
-    print("  ./backup_faba.py /mnt/faba/MKI01")
+    print("  # Linux/macOS")
+    print("  python3 backup_faba.py /mnt/faba/MKI01")
     print()
-    print("  # Backup in cartella specifica")
-    print("  ./backup_faba.py /mnt/faba/MKI01 --output ~/my-backups")
+    print("  # Windows (Faba montato come E:)")
+    print("  python backup_faba.py E:\\MKI01")
     print()
     print("  # Backup veloce + upload su Drive")
-    print("  ./backup_faba.py /mnt/faba/MKI01 --fast --upload-to-drive")
+    print("  python3 backup_faba.py /mnt/faba/MKI01 --fast --upload-to-drive")
     print()
     print("  # Lista backup esistenti")
-    print("  ./backup_faba.py --list")
+    print("  python3 backup_faba.py --list")
     print()
     print("  # Verifica backup")
-    print("  ./backup_faba.py --verify backups/faba_backup_20260210_143022.zip")
+    print("  python3 backup_faba.py --verify backups/faba_backup_20260210_143022.zip")
+
 
 def main():
-    """Main execution"""
     if len(sys.argv) < 2:
         show_usage()
         sys.exit(1)
 
-    # Special commands
     if sys.argv[1] == '--list':
         backup_dir = Path('./backups')
-        if len(sys.argv) > 2 and sys.argv[2] == '--output':
+        if len(sys.argv) > 3 and sys.argv[2] == '--output':
             backup_dir = Path(sys.argv[3])
         list_backups(backup_dir)
         return
@@ -398,19 +320,16 @@ def main():
         if not backup_path.exists():
             print_colored(f"Errore: File non trovato: {backup_path}", Colors.RED)
             sys.exit(1)
-        success = verify_backup(backup_path)
-        sys.exit(0 if success else 1)
+        sys.exit(0 if verify_backup(backup_path) else 1)
 
-    # Parse arguments
     faba_dir = Path(sys.argv[1])
     output_dir = Path('./backups')
-    compression_level = 9  # Maximum compression
+    compression_level = 9
     upload_to_drive_flag = False
 
     i = 2
     while i < len(sys.argv):
         arg = sys.argv[i]
-
         if arg == '--output':
             if i + 1 >= len(sys.argv):
                 print_colored("Errore: --output richiede un percorso", Colors.RED)
@@ -418,7 +337,7 @@ def main():
             output_dir = Path(sys.argv[i + 1])
             i += 2
         elif arg == '--fast':
-            compression_level = 6  # Fast compression
+            compression_level = 6
             i += 1
         elif arg == '--upload-to-drive':
             upload_to_drive_flag = True
@@ -427,44 +346,25 @@ def main():
             print_colored(f"Errore: Argomento non valido '{arg}'", Colors.RED)
             sys.exit(1)
 
-    # Validate
-    if not faba_dir.exists():
+    if not faba_dir.exists() or not faba_dir.is_dir():
         print_colored(f"Errore: Directory non trovata: {faba_dir}", Colors.RED)
         sys.exit(1)
 
-    if not faba_dir.is_dir():
-        print_colored(f"Errore: {faba_dir} non è una directory", Colors.RED)
-        sys.exit(1)
-
-    # Create output directory
     output_dir.mkdir(parents=True, exist_ok=True)
 
     try:
-        # Create backup
-        backup_path, metadata = create_backup(
-            faba_dir,
-            output_dir,
-            compression_level
-        )
+        backup_path, metadata = create_backup(faba_dir, output_dir, compression_level)
 
-        # Verify backup
-        print_colored("═" * 60, Colors.BLUE)
         if verify_backup(backup_path):
-            print_colored("═" * 60, Colors.GREEN)
-            print_colored("✓ Backup completato e verificato!", Colors.GREEN)
-            print_colored("═" * 60, Colors.GREEN)
+            print_colored("Backup completato e verificato!", Colors.GREEN)
         else:
-            print_colored("═" * 60, Colors.RED)
-            print_colored("⚠️  Backup creato ma verifica fallita!", Colors.RED)
-            print_colored("═" * 60, Colors.RED)
+            print_colored("Backup creato ma verifica fallita!", Colors.YELLOW)
 
-        # Upload to Drive if requested
         if upload_to_drive_flag:
             upload_to_drive(backup_path)
 
         print()
-        print_colored("Backup salvato in:", Colors.BOLD)
-        print(f"  {backup_path}")
+        print_colored(f"Backup salvato in: {backup_path}", Colors.BOLD)
         print()
 
     except KeyboardInterrupt:
@@ -473,8 +373,9 @@ def main():
         sys.exit(1)
     except Exception as e:
         print()
-        print_colored(f"❌ Errore: {e}", Colors.RED)
+        print_colored(f"Errore: {e}", Colors.RED)
         sys.exit(1)
+
 
 if __name__ == "__main__":
     main()

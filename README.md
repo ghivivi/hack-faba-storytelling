@@ -14,6 +14,13 @@ A collection of tools and scripts for customizing and enhancing your MyFaba and 
 - 💾 Complete backup system with maximum compression
 - 📝 Comprehensive documentation and FAQ
 
+## Setup
+
+Install Python dependencies:
+```bash
+pip install -r python/requirements.txt
+```
+
 ## ⚠️ Backup Your Faba
 
 **Before any modification, always create a backup!** The `backup_faba.py` script creates a compressed backup of your entire Faba disk.
@@ -21,14 +28,17 @@ A collection of tools and scripts for customizing and enhancing your MyFaba and 
 **Quick Start:**
 
 ```bash
-# Create backup with maximum compression
-./backup_faba.py /mnt/faba/MKI01
+# Linux/macOS
+python3 python/backup_faba.py /mnt/faba/MKI01
 
-# Fast backup (lower compression, faster)
-./backup_faba.py /mnt/faba/MKI01 --fast
+# Windows (Faba montato come E:)
+python python/backup_faba.py E:/MKI01
+
+# Fast backup
+python3 python/backup_faba.py /mnt/faba/MKI01 --fast
 
 # Backup + upload to Google Drive
-./backup_faba.py /mnt/faba/MKI01 --upload-to-drive
+python3 python/backup_faba.py /mnt/faba/MKI01 --upload-to-drive
 ```
 
 **Features:**
@@ -38,11 +48,7 @@ A collection of tools and scripts for customizing and enhancing your MyFaba and 
 - 📊 **Detailed statistics**: File count, size, compression ratio
 - ✅ **Auto-verification**: Ensures backup is valid
 
-**Typical results:**
-- Original: 150 MB → Backup: 45-50 MB (max compression)
-- Backup time: 2-5 minutes for 150 MB
-
-See **[BACKUP.md](BACKUP.md)** (IT) / **[BACKUP_EN.md](BACKUP_EN.md)** (EN) for detailed instructions and restore procedures.
+See **[docs/BACKUP.md](docs/BACKUP.md)** (IT) / **[docs/BACKUP_EN.md](docs/BACKUP_EN.md)** (EN) for detailed instructions and restore procedures.
 
 ## Sync from Google Drive
 
@@ -52,13 +58,13 @@ The `sync_from_drive.py` script allows you to easily receive MP3 files from othe
 
 ```bash
 # First-time setup (configure rclone)
-./sync_from_drive.py --setup
+python3 python/sync_from_drive.py --setup
 
 # List available files on Google Drive
-./sync_from_drive.py --list
+python3 python/sync_from_drive.py --list
 
 # Download and process all new files
-./sync_from_drive.py --sync-all --faba-dir /mnt/faba/MKI01
+python3 python/sync_from_drive.py --sync-all --faba-dir /mnt/faba/MKI01
 ```
 
 **Perfect for:**
@@ -73,7 +79,7 @@ The `sync_from_drive.py` script allows you to easily receive MP3 files from othe
 3. Run the sync script - it downloads, encrypts, and adds files automatically
 4. Processed files are archived on Drive
 
-See **[SYNC_FROM_DRIVE.md](SYNC_FROM_DRIVE.md)** (IT) / **[SYNC_FROM_DRIVE_EN.md](SYNC_FROM_DRIVE_EN.md)** (EN) for setup instructions and detailed usage.
+See **[docs/SYNC_FROM_DRIVE.md](docs/SYNC_FROM_DRIVE.md)** (IT) / **[docs/SYNC_FROM_DRIVE_EN.md](docs/SYNC_FROM_DRIVE_EN.md)** (EN) for setup instructions and detailed usage.
 
 ## Add Tracks to Faba
 
@@ -83,13 +89,13 @@ The `add_tracks.py` script makes it easy to add new MP3 files to your Faba devic
 
 ```bash
 # Create new figure with auto-incremental ID
-./add_tracks.py /mnt/faba/MKI01 --new-figure track1.mp3 track2.mp3 track3.mp3
+python3 python/add_tracks.py /mnt/faba/MKI01 --new-figure track1.mp3 track2.mp3
 
 # Add tracks to existing figure
-./add_tracks.py /mnt/faba/MKI01 --add-to K0015 newtrack.mp3
+python3 python/add_tracks.py /mnt/faba/MKI01 --add-to K0015 newtrack.mp3
 
 # Insert track at specific position (renumbers subsequent tracks)
-./add_tracks.py /mnt/faba/MKI01 --add-to K0015 intro.mp3 --position 2
+python3 python/add_tracks.py /mnt/faba/MKI01 --add-to K0015 intro.mp3 --position 2
 ```
 
 **Features:**
@@ -99,7 +105,7 @@ The `add_tracks.py` script makes it easy to add new MP3 files to your Faba devic
 - 🏷️ **ID3 tag management**: Automatically updates all ID3 tags to match Faba's format (KxxxxCPyy)
 - 🔐 **Automatic encryption**: Converts MP3 files to encrypted .MKI format
 
-See **[ADD_TRACKS.md](ADD_TRACKS.md)** (IT) / **[ADD_TRACKS_EN.md](ADD_TRACKS_EN.md)** (EN) for detailed instructions and examples.
+See **[docs/ADD_TRACKS.md](docs/ADD_TRACKS.md)** (IT) / **[docs/ADD_TRACKS_EN.md](docs/ADD_TRACKS_EN.md)** (EN) for detailed instructions and examples.
 
 ## Remove Advertisements
 
@@ -109,13 +115,13 @@ Many Faba figures include a short advertisement as the first track (CP01.MKI). Y
 
 ```bash
 # 1. Check what would be removed (safe, no changes)
-./remove_ads.py /mnt/faba/MKI01 --dry-run
+python3 python/remove_ads.py /mnt/faba/MKI01 --dry-run
 
 # 2. Move advertisements to backup folder (recommended)
-./remove_ads.py /mnt/faba/MKI01 --backup
+python3 python/remove_ads.py /mnt/faba/MKI01 --backup
 ```
 
-The script automatically identifies advertisements by file size (~448KB) and preserves all real content. See **[REMOVE_ADS.md](REMOVE_ADS.md)** (IT) / **[REMOVE_ADS_EN.md](REMOVE_ADS_EN.md)** (EN) for detailed instructions and safety information.
+The script automatically identifies advertisements by file size (~448KB) and preserves all real content. See **[docs/REMOVE_ADS.md](docs/REMOVE_ADS.md)** (IT) / **[docs/REMOVE_ADS_EN.md](docs/REMOVE_ADS_EN.md)** (EN) for detailed instructions and safety information.
 
 ## Create your own figure (Original Faba)
 
@@ -187,18 +193,15 @@ For a list of known figure IDs and their corresponding characters, please check 
 ## FAQ
 
 For frequently asked questions and troubleshooting tips, please check our [FAQ](FAQ.md).
-This addition provides a link to a separate FAQ.md file where you can include frequently asked questions and their answers. Make sure to create the FAQ.md file in the same directory as the README.md file.
 
-## 📚 Documentation Languages
-
-All major tools have documentation available in both Italian and English:
+## 📚 Documentation
 
 | Tool | Italian 🇮🇹 | English 🇬🇧 |
 |------|-----------|------------|
-| **Backup** | [BACKUP.md](BACKUP.md) | [BACKUP_EN.md](BACKUP_EN.md) |
-| **Add Tracks** | [ADD_TRACKS.md](ADD_TRACKS.md) | [ADD_TRACKS_EN.md](ADD_TRACKS_EN.md) |
-| **Remove Ads** | [REMOVE_ADS.md](REMOVE_ADS.md) | [REMOVE_ADS_EN.md](REMOVE_ADS_EN.md) |
-| **Sync from Drive** | [SYNC_FROM_DRIVE.md](SYNC_FROM_DRIVE.md) | [SYNC_FROM_DRIVE_EN.md](SYNC_FROM_DRIVE_EN.md) |
+| **Backup** | [docs/BACKUP.md](docs/BACKUP.md) | [docs/BACKUP_EN.md](docs/BACKUP_EN.md) |
+| **Add Tracks** | [docs/ADD_TRACKS.md](docs/ADD_TRACKS.md) | [docs/ADD_TRACKS_EN.md](docs/ADD_TRACKS_EN.md) |
+| **Remove Ads** | [docs/REMOVE_ADS.md](docs/REMOVE_ADS.md) | [docs/REMOVE_ADS_EN.md](docs/REMOVE_ADS_EN.md) |
+| **Sync from Drive** | [docs/SYNC_FROM_DRIVE.md](docs/SYNC_FROM_DRIVE.md) | [docs/SYNC_FROM_DRIVE_EN.md](docs/SYNC_FROM_DRIVE_EN.md) |
 
 ## Learn More
 
